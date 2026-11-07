@@ -1,0 +1,61 @@
+# A股量化交易平台配置
+# 股票代码请加引号，否则 YAML 会把 000001 读成数字 1（程序也会自动补零）
+
+feed:
+  # sim     本地仿真行情（加速时钟，收盘后/周末联调用）
+  # akshare 东方财富准实时行情（需中国大陆网络，HTTP 轮询，秒级）
+  # qmt     miniQMT 推送行情（需券商开通，Windows，真正的实时推送）
+  type: sim
+  symbols: ["600000", "000001", "600519", "300750", "688981", "002594"]
+  names: {}            # 可选：{"600000": "浦发银行"}，akshare quote 模式不返回名称
+  akshare:
+    mode: quote        # quote: 逐只拉五档盘口（自选股≤30 只）；spot: 全市场快照（约 1 分钟一轮，仅用于扫描）
+    interval: 3        # 轮询间隔（秒）。太小会被东方财富限流
+    max_concurrency: 4
+    only_trading_hours: true
+  sim:
+    speed: 30          # 真实 1 秒 = 行情 30 秒
+    tick_interval: 0.5
+    seed: 42
+  qmt:
+    period: tick
+    whole_market: false
+
+broker:
+  type: paper          # paper 本地模拟撮合 | qmt 券商实盘（⚠️ 先用模拟账户测试）
+  initial_cash: 1000000
+  fill_ratio: 1.0      # 每档最多吃掉的盘口比例，调小可模拟冲击成本
+  fees:
+    commission_rate: 0.00025   # 佣金万 2.5，按你的券商实际费率改
+    min_commission: 5
+    stamp_duty: 0.0005         # 印花税，卖出单边
+    transfer_fee: 0.00001      # 过户费
+  qmt:
+    path: 'D:\国金QMT交易端\userdata_mini'   # miniQMT 的 userdata_mini 目录
+    account_id: ""
+
+risk:
+  enabled: true
+  max_order_value: 200000     # 单笔最大金额
+  max_position_pct: 0.30      # 单票最大仓位占总资产比例
+  max_daily_loss_pct: 0.05    # 当日亏损超过 5% 自动熔断
+  max_orders_per_second: 5
+  max_orders_per_day: 2000
+  max_cancels_per_day: 1000
+  block_st_buy: true
+  blacklist: []
+
+strategies:
+  - class: dual_ma               # 内置简称，或完整类路径 mypkg.my_strategy.MyStrategy
+    name: 双均线-1分钟
+    symbols: ["600000", "000001", "300750"]
+    interval: 1m                 # 1m / 5m / 15m / 30m / 60m
+    params: {fast: 5, slow: 20, position_pct: 0.2}
+
+storage:
+  path: data/quant.duckdb
+  store_ticks: true
+
+web:
+  host: 127.0.0.1
+  port: 8000

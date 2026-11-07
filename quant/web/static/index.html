@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A股量化交易平台</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/vendor/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">A股量化<span class="muted">交易平台</span></div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="monitor" role="tab">实时监控</button>
+    <button class="tab" data-view="backtest" role="tab">策略回测</button>
+  </nav>
+  <div class="status">
+    <span class="pill" id="feed-pill"><span class="dot"></span><span id="feed-text">连接中…</span></span>
+    <span class="clock" id="clock" title="行情事件时间（仿真源为加速时钟）">--</span>
+    <button class="btn danger" id="kill-btn" title="立即撤销全部挂单并禁止新开委托">一键熔断</button>
+  </div>
+</header>
+
+<main id="view-monitor" class="view monitor">
+  <aside class="panel watch">
+    <div class="panel-h">自选股 <span class="muted" id="watch-count"></span></div>
+    <form id="watch-form" class="inline-form">
+      <input id="watch-input" placeholder="添加代码，如 600519" maxlength="6" inputmode="numeric" aria-label="股票代码">
+      <button class="btn" type="submit">添加</button>
+    </form>
+    <table class="tbl watch-tbl">
+      <thead><tr><th>代码/名称</th><th class="r">最新</th><th class="r">涨跌幅</th></tr></thead>
+      <tbody id="watch-body"></tbody>
+    </table>
+  </aside>
+
+  <section class="center">
+    <div class="panel chart-panel">
+      <div class="chart-head">
+        <div class="sym-title"><span id="sym-name">--</span> <span class="muted" id="sym-code"></span></div>
+        <div class="sym-quote"><span id="sym-last" class="num big">--</span> <span id="sym-chg" class="num">--</span></div>
+        <div class="seg" id="interval-seg">
+          <button class="seg-b active" data-interval="1m">1分</button>
+          <button class="seg-b" data-interval="5m">5分</button>
+          <button class="seg-b" data-interval="1d">日线</button>
+        </div>
+      </div>
+      <div class="ohlc muted num" id="ohlc">--</div>
+      <div id="kchart" class="kchart"></div>
+    </div>
+    <div class="panel bottom">
+      <div class="subtabs">
+        <button class="subtab active" data-pane="positions">持仓</button>
+        <button class="subtab" data-pane="orders">委托</button>
+        <button class="subtab" data-pane="trades">成交</button>
+        <button class="subtab" data-pane="logs">日志</button>
+        <button class="btn small ghost push" id="cancel-all">全部撤单</button>
+      </div>
+      <div class="pane active" id="pane-positions"><table class="tbl"><thead><tr><th>代码</th><th>名称</th><th class="r">持仓</th><th class="r">可卖</th><th class="r">成本</th><th class="r">现价</th><th class="r">市值</th><th class="r">浮动盈亏</th></tr></thead><tbody id="pos-body"></tbody></table></div>
+      <div class="pane" id="pane-orders"><table class="tbl"><thead><tr><th>时间</th><th>代码</th><th>方向</th><th class="r">价格</th><th class="r">数量</th><th class="r">成交</th><th>状态</th><th>策略</th><th>说明</th><th></th></tr></thead><tbody id="ord-body"></tbody></table></div>
+      <div class="pane" id="pane-trades"><table class="tbl"><thead><tr><th>时间</th><th>代码</th><th>方向</th><th class="r">价格</th><th class="r">数量</th><th class="r">费用</th><th>策略</th></tr></thead><tbody id="trd-body"></tbody></table></div>
+      <div class="pane" id="pane-logs"><ul class="logs" id="log-list"></ul></div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="panel acct">
+      <div class="panel-h">模拟账户</div>
+      <div class="kv"><span>总资产</span><b class="num" id="a-equity">--</b></div>
+      <div class="kv"><span>可用资金</span><span class="num" id="a-cash">--</span></div>
+      <div class="kv"><span>冻结资金</span><span class="num" id="a-frozen">--</span></div>
+      <div class="kv"><span>持仓市值</span><span class="num" id="a-mv">--</span></div>
+      <div class="kv"><span>当日盈亏</span><span class="num" id="a-daypnl">--</span></div>
+      <div class="kv"><span>累计收益</span><span class="num" id="a-ret">--</span></div>
+    </div>
+    <div class="panel book">
+      <div class="panel-h">五档盘口 <span class="muted small">单位：手</span></div>
+      <div id="book"></div>
+      <div class="limits muted small" id="limits"></div>
+    </div>
+    <div class="panel order">
+      <div class="panel-h">手动下单</div>
+      <form id="order-form">
+        <div class="seg full" id="dir-seg">
+          <button type="button" class="seg-b buy active" data-dir="BUY">买入</button>
+          <button type="button" class="seg-b sell" data-dir="SELL">卖出</button>
+        </div>
+        <label>代码<input id="o-symbol" maxlength="6" inputmode="numeric"></label>
+        <label>类型
+          <select id="o-type"><option value="LIMIT">限价</option><option value="MARKET">市价（涨跌停价保护）</option></select>
+        </label>
+        <label>价格<input id="o-price" type="number" step="0.01" min="0"></label>
+        <label>数量（股）<input id="o-volume" type="number" step="100" min="100" value="100"></label>
+        <div class="muted small" id="o-hint"></div>
+        <button class="btn primary full" type="submit" id="o-submit">买入</button>
+      </form>
+    </div>
+  </aside>
+</main>
+
+<main id="view-backtest" class="view backtest hidden">
+  <div class="panel bt-form">
+    <form id="bt-form" class="grid-form">
+      <label>策略<select id="bt-strategy"></select></label>
+      <label>股票代码（逗号分隔）<input id="bt-symbols" value="600000,000001,300750"></label>
+      <label>开始日期<input id="bt-start" type="date" value="2022-01-01"></label>
+      <label>结束日期<input id="bt-end" type="date" value="2025-06-30"></label>
+      <label>初始资金<input id="bt-cash" type="number" value="1000000" step="10000"></label>
+      <label class="wide">策略参数（JSON）<input id="bt-params" value='{"fast": 5, "slow": 20, "position_pct": 0.2}'></label>
+      <label class="check"><input type="checkbox" id="bt-synth" checked> 本地无日线时使用合成数据（仅联调，非真实行情）</label>
+      <div class="actions">
+        <button class="btn" type="button" id="bt-download" title="需在中国大陆网络下运行">下载真实日线(akshare)</button>
+        <button class="btn primary" type="submit" id="bt-run">运行回测</button>
+      </div>
+    </form>
+    <div class="muted small" id="bt-msg"></div>
+  </div>
+  <div class="tiles" id="bt-tiles"></div>
+  <div class="panel">
+    <div class="panel-h">权益曲线 <span class="legend"><i class="sw s1"></i>策略权益 <i class="sw s2"></i>等权持有基准</span></div>
+    <div class="ohlc muted num" id="eq-readout">--</div>
+    <div id="eqchart" class="eqchart"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h">回撤</div>
+    <div id="ddchart" class="ddchart"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h">成交明细 <span class="muted" id="bt-trade-count"></span></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>日期</th><th>代码</th><th>方向</th><th class="r">价格</th><th class="r">数量</th><th class="r">费用</th></tr></thead><tbody id="bt-trades"></tbody></table></div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

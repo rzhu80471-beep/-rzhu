@@ -1,0 +1,9 @@
+[project]
+name = "ashare-quant"
+version = "0.1.0"
+description = "A 股量化交易平台：akshare 准实时行情 / miniQMT 推送行情 + 事件驱动引擎 + 模拟撮合 + 回测 + Web 看板"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"

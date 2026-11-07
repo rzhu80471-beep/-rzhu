@@ -1,0 +1,10 @@
+akshare>=1.17
+pandas>=2.0
+numpy>=1.24
+duckdb>=1.0
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pyyaml>=6.0
+tzdata; sys_platform == "win32"
+# 可选：miniQMT 实盘 / 推送行情（仅 Windows，需券商开通）
+# xtquant
