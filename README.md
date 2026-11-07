@@ -84,6 +84,19 @@ quant/
 
 ## 快速开始
 
+需要 **Python 3.11 及以上**（akshare 最新版的要求）。旧版本 Python 可以保留，新版本可以和它共存。
+
+### Windows：双击启动（推荐）
+
+1. 安装 [Python 3.12](https://www.python.org/downloads/)，安装时勾选 **Add python.exe to PATH**
+2. 在 GitHub 仓库页面点 **Code → Download ZIP**，解压
+3. 进入解压后包含 `start.bat` 的文件夹，**双击 `start.bat`**
+
+首次运行会自动创建虚拟环境并安装依赖（使用清华镜像，几分钟），然后自动打开 http://127.0.0.1:8000 。
+要用东方财富实时行情，在该文件夹地址栏输入 `cmd` 回车，然后运行 `start.bat --feed akshare`。
+
+### 命令行（macOS / Linux / Windows 均可）
+
 ```bash
 cd ashare-quant
 ```

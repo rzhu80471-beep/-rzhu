@@ -118,6 +118,9 @@ def cmd_probe(args: argparse.Namespace) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
+    if sys.version_info < (3, 11):
+        sys.exit(f"需要 Python 3.11 或更高版本（akshare 最新版的要求），当前是 {sys.version.split()[0]}。\n"
+                 "请安装 Python 3.12：https://www.python.org/downloads/ ，Windows 用户也可以直接双击 start.bat。")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     p = argparse.ArgumentParser(prog="python -m quant", description="A 股量化交易平台")
     p.add_argument("-c", "--config", default="config.yaml")
