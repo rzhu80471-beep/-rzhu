@@ -95,6 +95,44 @@ quant/
 首次运行会自动创建虚拟环境并安装依赖（使用清华镜像，几分钟），然后自动打开 http://127.0.0.1:8000 。
 要用东方财富实时行情，在该文件夹地址栏输入 `cmd` 回车，然后运行 `start.bat --feed akshare`。
 
+### Jupyter Notebook（Anaconda 用户）
+
+Anaconda 自带的 Python 可能是 3.9，用 conda 新建一个 3.12 环境即可，不影响原来的环境。
+打开 **Anaconda Prompt**，依次运行：
+
+```bash
+conda create -n quant python=3.12 -y
+```
+
+```bash
+conda activate quant
+```
+
+```bash
+pip install ipykernel -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+```bash
+python -m ipykernel install --user --name quant --display-name "Python 3.12 (quant)"
+```
+
+然后照常打开 Jupyter Notebook，进入项目的 `notebooks/` 文件夹，打开 **`quickstart.ipynb`**，
+在菜单 **Kernel → Change kernel** 里选 **Python 3.12 (quant)**，从上到下依次运行。notebook 第一格会自动安装依赖。
+
+在 notebook 里可以：
+
+```python
+from quant.notebook import start_platform, stop_platform, backtest, plot_backtest, download, load_bars
+
+engine = start_platform()               # 后台启动看板并打开浏览器；feed="akshare" 接实时行情
+res = backtest("dual_ma", ["600000"], start="2022-01-01", synthetic=True)
+plot_backtest(res)                      # 权益曲线 + 回撤
+stop_platform()
+```
+
+> Jupyter 内核自己就在运行事件循环，所以不能在 notebook 里直接 `uvicorn.run` / `python -m quant run`，
+> `start_platform()` 会把服务放进后台线程，避免冲突。
+
 ### 命令行（macOS / Linux / Windows 均可）
 
 ```bash
